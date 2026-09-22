@@ -5,7 +5,7 @@ import redDress from "@/assets/product-red-dress.jpg";
 import campaignHero from "@/assets/campaign-hero.jpg";
 import productGrid from "@/assets/products-grid.jpg";
 import { Button, ProductCard, SectionTitle, useShop } from "@/components/ui";
-import { formatPrice, products } from "@/lib/catalog";
+import { featuredProduct, formatPrice, products } from "@/lib/catalog";
 
 export const Route = createFileRoute("/product/$slug")({
   head: ({ params }) => ({ meta: [
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/product/$slug")({
   ]}), component: ProductPage,
 });
 const sizes=["XS","S","M","L","XL"];
-function ProductPage(){ const {slug}=Route.useParams(); const product=products.find(p=>p.slug===slug)??products[0]; const [size,setSize]=useState(""); const [colour,setColour]=useState(product.colors[0]); const [pin,setPin]=useState(""); const [delivery,setDelivery]=useState<"idle"|"checking"|"yes"|"no">("idle"); const [guide,setGuide]=useState(false); const {addToBag,toggleWish,wishes}=useShop(); const gallery=useMemo(()=>[redDress,redDress,campaignHero,productGrid],[]); const checkPin=()=>{setDelivery("checking");setTimeout(()=>setDelivery(/^\d{6}$/.test(pin)?"yes":"no"),600)}; const add=()=>{if(!size){document.getElementById("sizes")?.scrollIntoView({behavior:"smooth",block:"center"});return}addToBag()}; return <main className="pb-20 md:pb-0">
+function ProductPage(){ const {slug}=Route.useParams(); const product=products.find(p=>p.slug===slug)??featuredProduct; const [size,setSize]=useState(""); const [colour,setColour]=useState(product.colors[0]); const [pin,setPin]=useState(""); const [delivery,setDelivery]=useState<"idle"|"checking"|"yes"|"no">("idle"); const [guide,setGuide]=useState(false); const {addToBag,toggleWish,wishes}=useShop(); const gallery=useMemo(()=>[redDress,redDress,campaignHero,productGrid],[]); const checkPin=()=>{setDelivery("checking");setTimeout(()=>setDelivery(/^\d{6}$/.test(pin)?"yes":"no"),600)}; const add=()=>{if(!size){document.getElementById("sizes")?.scrollIntoView({behavior:"smooth",block:"center"});return}addToBag()}; return <main className="pb-20 md:pb-0">
   <div className="mx-auto max-w-[1440px] px-4 py-3 text-[10px] uppercase tracking-widest text-muted-foreground md:px-8">Home / {product.category} / {product.name}</div>
   <section className="mx-auto grid max-w-[1440px] gap-8 px-0 md:grid-cols-[minmax(0,1.35fr)_minmax(360px,.65fr)] md:px-8">
     <div className="grid snap-x snap-mandatory grid-flow-col auto-cols-[88%] gap-1 overflow-x-auto md:grid-flow-row md:grid-cols-2 md:overflow-visible">{gallery.map((image,index)=><div key={index} className="aspect-[3/4] snap-center overflow-hidden bg-muted"><img src={image} alt={`${product.name} view ${index+1}`} width={1024} height={1365} className="h-full w-full object-cover" loading={index===0?"eager":"lazy"} style={index===2?{objectPosition:"40% center"}:index===3?{objectPosition:"14% 15%"}:undefined}/></div>)}</div>

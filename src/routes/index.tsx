@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const categories = [
+const categories: Array<[string, string]> = [
   ["Dresses", "14% 15%"], ["Shirts", "50% 15%"], ["Co-ords", "87% 15%"], ["Tops", "14% 86%"], ["Denim", "50% 86%"], ["Jumpsuits", "87% 86%"],
 ];
 
@@ -50,6 +50,6 @@ function HomePage() {
 
     <section className="bg-secondary py-16 md:py-24"><div className="mx-auto max-w-[1440px] px-4 md:px-8"><SectionTitle eyebrow="AARO community" title="Worn your way"/><p className="mb-7 max-w-lg text-sm text-muted-foreground">Sample creator content showing how the community styles this season’s pieces.</p><div className="grid grid-cols-2 gap-2 md:grid-cols-4">{["0%","33%","66%","100%"].map((position,index)=><div key={position} className="aspect-[3/4] overflow-hidden"><img src={reelsGrid} alt={`Community style ${index+1}`} loading="lazy" width={1536} height={1024} className="h-full w-full object-cover" style={{objectPosition:position}}/></div>)}</div></div></section>
 
-    <section className="border-b border-border"><div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-y divide-border md:grid-cols-4 md:divide-y-0">{[[Sparkles,"Thoughtful design","Made for repeat wear"],[Undo2,"Easy returns","Clear, simple process"],[Truck,"Delivery updates","Track every step"],[ShieldCheck,"Secure checkout","Protected payment flow"]].map(([Icon,title,text])=><div className="p-6 md:p-8" key={String(title)}><Icon size={22}/><p className="mt-4 text-sm font-semibold">{String(title)}</p><p className="mt-1 text-xs text-muted-foreground">{String(text)}</p></div>)}</div></section>
+    <section className="border-b border-border"><div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-y divide-border md:grid-cols-4 md:divide-y-0">{[{Icon:Sparkles,title:"Thoughtful design",text:"Made for repeat wear"},{Icon:Undo2,title:"Easy returns",text:"Clear, simple process"},{Icon:Truck,title:"Delivery updates",text:"Track every step"},{Icon:ShieldCheck,title:"Secure checkout",text:"Protected payment flow"}].map(({Icon,title,text})=><div className="p-6 md:p-8" key={title}><Icon size={22}/><p className="mt-4 text-sm font-semibold">{title}</p><p className="mt-1 text-xs text-muted-foreground">{text}</p></div>)}</div></section>
   </main>;
 }

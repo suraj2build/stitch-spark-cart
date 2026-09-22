@@ -13,8 +13,10 @@ export type Product = {
   badge?: string;
 };
 
+export const featuredProduct: Product = { slug: "sienna-structured-midi", name: "Sienna Structured Midi", category: "Dresses", price: 3290, mrp: 3990, image: redDress, colors: ["brick", "ink"], badge: "NEW" };
+
 export const products: Product[] = [
-  { slug: "sienna-structured-midi", name: "Sienna Structured Midi", category: "Dresses", price: 3290, mrp: 3990, image: redDress, colors: ["brick", "ink"], badge: "NEW" },
+  featuredProduct,
   { slug: "air-linen-shirt", name: "Air Linen Shirt", category: "Shirts", price: 1890, image: productGrid, position: "50% 15%", colors: ["ivory", "sky"] },
   { slug: "noir-tailored-set", name: "Noir Tailored Co-ord", category: "Co-ords", price: 4490, mrp: 5290, image: productGrid, position: "88% 15%", colors: ["ink"], badge: "BESTSELLER" },
   { slug: "cobalt-knit-polo", name: "Cobalt Knit Polo", category: "Tops", price: 1790, image: productGrid, position: "14% 86%", colors: ["cobalt", "ivory"] },
