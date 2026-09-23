@@ -6,7 +6,7 @@ import { formatPrice, type Product } from "@/lib/catalog";
 import { reelStories, type ReelStory } from "@/lib/reels";
 
 export const Route = createFileRoute("/watch")({
-  validateSearch: (search: Record<string, unknown>) => ({ story: typeof search.story === "string" ? search.story : undefined }),
+  validateSearch: (search: Record<string, unknown>) => ({ story: typeof search["story"] === "string" ? search["story"] : "city-colour" }),
   head: () => ({ meta: [
     { title: "Watch & Shop — AARO" },
     { name: "description", content: "Discover AARO looks through immersive shoppable fashion stories." },
@@ -25,6 +25,9 @@ function WatchPage() {
   const [sheetStory, setSheetStory] = useState<ReelStory | null>(null);
   const navigate = useNavigate({ from: "/watch" });
   const storyRefs = useRef<Array<HTMLElement | null>>([]);
+  const firstStory = reelStories[0];
+  if (!firstStory) return null;
+  const activeStory = reelStories[activeIndex] ?? firstStory;
 
   useEffect(() => {
     const node = storyRefs.current[initialIndex];
@@ -54,8 +57,8 @@ function WatchPage() {
           <p className="py-2 text-center text-[10px] font-semibold tracking-widest text-reel-foreground/55">{activeIndex + 1}/{reelStories.length}</p>
           <Button variant="light" size="icon" aria-label="Next story" disabled={activeIndex === reelStories.length - 1} onClick={() => selectStory(activeIndex + 1)}><ChevronRight size={20}/></Button>
         </div>
-        <ReelFrame story={reelStories[activeIndex] ?? reelStories[0]} active openProducts={() => setSheetStory(reelStories[activeIndex] ?? reelStories[0])} storyIndex={activeIndex} storyCount={reelStories.length}/>
-        <DesktopProducts story={reelStories[activeIndex] ?? reelStories[0]}/>
+        <ReelFrame story={activeStory} active openProducts={() => setSheetStory(activeStory)} storyIndex={activeIndex} storyCount={reelStories.length}/>
+        <DesktopProducts story={activeStory}/>
       </div>
     </div>
     {sheetStory && <ProductSheet story={sheetStory} close={() => setSheetStory(null)}/>} 
