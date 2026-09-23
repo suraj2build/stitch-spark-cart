@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Play, ShieldCheck, Sparkles, Truck, Undo2 } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, Truck, Undo2 } from "lucide-react";
 import campaignHero from "@/assets/campaign-hero.jpg";
 import productGrid from "@/assets/products-grid.jpg";
 import reelsGrid from "@/assets/reels-grid.jpg";
 import redDress from "@/assets/product-red-dress.jpg";
 import { products } from "@/lib/catalog";
 import { Button, ProductCard, SectionTitle } from "@/components/ui";
+import { ReelCarousel } from "@/components/reel-carousel";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
@@ -46,7 +47,7 @@ function HomePage() {
 
     <section className="bg-foreground py-16 text-background md:py-24"><div className="mx-auto max-w-[1440px] px-4 md:px-8"><SectionTitle eyebrow="Styled together" title="Shop the look"/><div className="grid gap-8 md:grid-cols-[1.35fr_.65fr] md:items-center"><div className="relative aspect-[4/5] overflow-hidden md:aspect-[4/3]"><img src={campaignHero} alt="Ivory and charcoal styled look" loading="lazy" width={1536} height={1024} className="h-full w-full object-cover"/><span className="absolute left-[34%] top-[36%] h-6 w-6 animate-pulse rounded-full border-4 border-background bg-accent"/><span className="absolute left-[64%] top-[43%] h-6 w-6 animate-pulse rounded-full border-4 border-background bg-accent"/></div><div className="space-y-5">{products.slice(1,3).map(product=><div key={product.slug} className="flex items-center gap-4 border-b border-background/20 pb-5"><img src={product.image} alt="" loading="lazy" width={96} height={128} className="h-24 w-20 object-cover" style={product.position ? {objectPosition:product.position}:undefined}/><div className="min-w-0 flex-1"><p className="text-sm font-medium">{product.name}</p><p className="mt-1 text-xs text-background/60">Select a size on product page</p></div><Link to="/product/$slug" params={{slug:product.slug}} aria-label={`View ${product.name}`}><ArrowRight/></Link></div>)}</div></div></div></section>
 
-    <section className="mx-auto max-w-[1440px] px-4 py-16 md:px-8 md:py-24"><SectionTitle eyebrow="Watch · Want · Wear" title="Watch & Shop"/><Link to="/watch" className="group block"><div className="relative aspect-[4/3] overflow-hidden md:aspect-[16/7]"><img src={reelsGrid} alt="Creators wearing AARO looks" loading="lazy" width={1536} height={1024} className="h-full w-full object-cover"/><div className="absolute inset-0 bg-media-overlay"/><span className="absolute left-1/2 top-1/2 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-background text-foreground transition group-hover:scale-105"><Play fill="currentColor" size={23}/></span><div className="absolute bottom-5 left-5 text-hero-foreground md:bottom-8 md:left-8"><p className="text-xs font-semibold uppercase tracking-widest">4 new stories</p><p className="mt-2 font-display text-3xl md:text-5xl">See it in motion</p></div></div></Link></section>
+    <ReelCarousel/>
 
     <section className="bg-secondary py-16 md:py-24"><div className="mx-auto max-w-[1440px] px-4 md:px-8"><SectionTitle eyebrow="AARO community" title="Worn your way"/><p className="mb-7 max-w-lg text-sm text-muted-foreground">Sample creator content showing how the community styles this season’s pieces.</p><div className="grid grid-cols-2 gap-2 md:grid-cols-4">{["0%","33%","66%","100%"].map((position,index)=><div key={position} className="aspect-[3/4] overflow-hidden"><img src={reelsGrid} alt={`Community style ${index+1}`} loading="lazy" width={1536} height={1024} className="h-full w-full object-cover" style={{objectPosition:position}}/></div>)}</div></div></section>
 
