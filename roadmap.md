@@ -11,3 +11,10 @@
 - [x] Add Search with results and no-results recovery.
 - [x] Add responsive guest-first Checkout through confirmation and payment-failure recovery.
 - [x] Validate the coordinated journey on mobile and desktop.
+
+## Watch & Shop correction
+- [x] Replace the Home banner with a responsive portrait reel carousel
+- [x] Build separate reel/story data with distinct local posters
+- [x] Rebuild /watch as a mobile snap feed and restrained desktop viewer
+- [x] Add tagged-product bottom sheet and preserve bag/wishlist/PDP flows
+- [x] Verify Home and /watch at 360, 390, tablet, 1366, and 1440 widths
