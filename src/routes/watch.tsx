@@ -79,7 +79,7 @@ function ReelFrame({ story, active, openProducts, storyIndex, storyCount, frameR
   }, [onVisible, story.id]);
 
   const firstSlug = story.taggedProductSlugs[0];
-  return <section ref={frameRef} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}`} className="relative mx-auto aspect-[9/16] h-[calc(100svh-6.5rem)] max-h-[820px] w-full snap-start overflow-hidden bg-foreground md:h-auto md:max-h-[76svh] md:w-auto md:max-w-[420px]">
+  return <section ref={frameRef} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}`} className="relative mx-auto aspect-[9/16] h-auto max-h-[calc(100svh-6.5rem)] w-[min(100%,calc((100svh-6.5rem)*9/16))] snap-start overflow-hidden bg-foreground md:max-h-[76svh] md:w-auto md:max-w-[420px]">
     {story.videoUrl ? <video src={story.videoUrl} poster={story.poster} muted={muted} autoPlay={playing && active} loop playsInline className="h-full w-full object-cover"/> : <img src={story.poster} alt={`${story.title} fashion story`} loading={storyIndex === 0 ? "eager" : "lazy"} width={768} height={1365} className="h-full w-full object-cover"/>}
     <div className="absolute inset-0 bg-reel-overlay"/>
     <div className="absolute left-3 top-3 flex gap-2">
