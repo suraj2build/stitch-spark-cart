@@ -10,7 +10,7 @@ type ShopContextValue = {
   bagCount: number;
   wishes: Set<string>;
   addToBag: (slug: string, size: string, colour?: string, quantity?: number) => void;
-  updateBag: (id: string, changes: Partial<Pick<BagLine, "size" | "quantity">>) => void;
+  updateBag: (id: string, changes: Partial<Pick<BagLine, "size" | "colour" | "quantity">>) => void;
   removeFromBag: (id: string) => void;
   clearBag: () => void;
   toggleWish: (slug: string) => void;
@@ -25,7 +25,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     const existing = current.find((line) => line.id === id);
     return existing ? current.map((line) => line.id === id ? { ...line, quantity: line.quantity + quantity } : line) : [...current, { id, slug, size, colour, quantity }];
   });
-  const updateBag = (id: string, changes: Partial<Pick<BagLine, "size" | "quantity">>) => setBag((current) => current.map((line) => line.id === id ? { ...line, ...changes, quantity: Math.max(1, changes.quantity ?? line.quantity) } : line));
+  const updateBag = (id: string, changes: Partial<Pick<BagLine, "size" | "colour" | "quantity">>) => setBag((current) => current.map((line) => line.id === id ? { ...line, ...changes, quantity: Math.max(1, changes.quantity ?? line.quantity) } : line));
   const removeFromBag = (id: string) => setBag((current) => current.filter((line) => line.id !== id));
   const clearBag = () => setBag([]);
   const toggleWish = (slug: string) => setWishes((current) => { const next = new Set(current); next.has(slug) ? next.delete(slug) : next.add(slug); return next; });
@@ -44,9 +44,9 @@ export function Header() {
   const [menu, setMenu] = useState(false);
   const [search, setSearch] = useState(false);
   const [query, setQuery] = useState("");
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: "/" });
   const { bagCount, wishes } = useShop();
-  const submitSearch = () => { setSearch(false); navigate({ to: "/search", search: { q: query.trim() || undefined } }); };
+  const submitSearch = () => { setSearch(false); navigate({ to: "/search", search: { q: query.trim() } }); };
   return <>
     <div className="bg-primary px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground">New season edit · Complimentary shipping over ₹2,999</div>
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
