@@ -7,7 +7,7 @@
 - [x] Add shared navigation, bag/wishlist/search interactions, footer, design system, and unique metadata.
 - [x] Validate desktop and mobile core shopping flows.
 - [ ] Refine Home sequencing, PLP filtering/sorting, PDP, Shop the Look, and Watch & Shop.
-- [ ] Add structured bag and wishlist state with complete Bag and Wishlist pages.
-- [ ] Add Search with results and no-results recovery.
-- [ ] Add responsive guest-first Checkout through confirmation and payment-failure recovery.
+- [x] Add structured bag and wishlist state with complete Bag and Wishlist pages.
+- [x] Add Search with results and no-results recovery.
+- [x] Add responsive guest-first Checkout through confirmation and payment-failure recovery.
 - [ ] Validate the coordinated journey on mobile and desktop.
