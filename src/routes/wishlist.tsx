@@ -1,0 +1,7 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Heart } from "lucide-react";
+import { Button, ProductCard, useShop } from "@/components/ui";
+import { products } from "@/lib/catalog";
+
+export const Route = createFileRoute("/wishlist")({ head: () => ({ meta: [{ title: "Wishlist — AARO" }, { name: "description", content: "Your saved AARO styles, ready when you are." }, { property: "og:title", content: "Wishlist — AARO" }, { property: "og:description", content: "Return to the AARO styles you love." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: WishlistPage });
+function WishlistPage(){const {wishes}=useShop();const saved=products.filter(p=>wishes.has(p.slug));return <main className="mx-auto min-h-[65svh] max-w-[1440px] px-4 py-12 md:px-8 md:py-20"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-accent">Saved for later</p><h1 className="mt-3 font-display text-5xl md:text-7xl">Wishlist</h1>{saved.length?<div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-9 md:grid-cols-4 md:gap-5">{saved.map(p=><ProductCard key={p.slug} product={p}/>)}</div>:<div className="mx-auto flex max-w-md flex-col items-center py-24 text-center"><Heart size={32}/><h2 className="mt-5 font-display text-4xl">Nothing saved yet.</h2><p className="mt-3 text-sm text-muted-foreground">Tap the heart on any style to keep it close.</p><Link to="/shop" search={{for:"all"}} className="mt-7"><Button>Find your favourites</Button></Link></div>}</main>}
