@@ -1,36 +1,31 @@
-# Fashion Commerce Customer Experience
+# AARO Coordinated Commerce Refinement
 
 ## Goal
-Build an implementation-ready, customer-facing fashion commerce prototype for Indian men and women, using sample content only and no production commerce backend.
+Refine the existing AARO prototype into one coherent, responsive shopping journey while preserving its approved editorial identity, imagery, typography, warm neutral palette, and complete Home/PDP scope.
 
-## Scope
-- Establish a restrained editorial design system: typography, semantic colors, spacing, controls, product cards, states, drawers, sheets, and responsive behavior.
-- Build shared announcement bar, responsive navigation, search entry, wishlist/bag indicators, and footer.
-- Build the home experience with campaign imagery, curated discovery, category merchandising, editorial stories, best sellers, Shop the Look, Watch & Shop, community content, and service information.
-- Build a first-class Watch & Shop experience with vertical media, tagged products, product preview, size/color selection, wishlist, and prototype add-to-bag behavior.
-- Build a category/product-listing experience with responsive grids, desktop filters, mobile filter/sort sheets, product badges, color choices, and guarded Quick Add.
-- Build a product-detail experience with media gallery, purchase controls, size guide and My Size placeholder, model details, pincode states, progressive information, sample review presentation, Complete the Look, and Frequently Bought Together.
-- Use local prototype data and clearly label sample content where it could otherwise be mistaken for live data.
+## Build
+- Rework shared shopping state from a counter into demo line items with size, colour, quantity, removal, and wishlist movement; keep all data local and non-production.
+- Upgrade the header into working navigation for search, wishlist, and bag, with compact mobile behavior and consistent count feedback.
+- Refine Home ordering to: campaign hero, Women/Men discovery, New & Trending, categories, collection story, best sellers, interactive Shop the Look, Watch & Shop, community, services, footer.
+- Upgrade PLP filters with realistic values per category, selected-filter feedback, clear/apply behavior, functional sorting, dedicated mobile Filter and Sort sheets, richer swatches, availability-aware Quick Add, and polished empty results.
+- Refine PDP gallery and purchase controls, preserve every requested information module, improve unavailable-product handling, add customer-photo presentation, make Complete the Look individually configurable, and keep the mobile purchase bar compact and clear.
+- Upgrade Watch & Shop with unobtrusive story navigation and tagged-product previews supporting colour, size, wishlist, Add to Bag, and product navigation without leaving the media context.
+- Add a full responsive Bag page with line-item editing, delivery messaging, coupon/credit placeholders, price summary, empty state, and checkout entry.
+- Add a low-friction Checkout page with a compact Bag → Details → Delivery → Payment → Confirmation progression, equal Guest and Sign-in entry, saved/new address states, serviceability, COD/prepaid choices, order summary, failure recovery, and mobile sticky continuation.
+- Add a dedicated Search experience with recent searches, suggestions, trending categories/products, results, and recovery-focused no-results state.
+- Add a Wishlist page so the existing wishlist control has a complete destination and branded empty state.
 
-## Responsive behavior
-- Design mobile interactions independently: thumb-friendly controls, swipeable media, bottom sheets, compact navigation, and sticky purchase actions.
-- Use desktop space for editorial image composition, comparison, persistent filters, and a sticky purchase panel.
-
-## Visual direction
-- Modern Indian fashion editorial: confident, youthful, premium but accessible.
-- Image-led composition, strong type hierarchy, restrained surfaces, minimal shadow, small radii, and no marketplace or dashboard styling.
-- Generate a cohesive local campaign/product image set so the prototype contains no placeholder imagery.
-
-## Prototype behavior
-- Local search/filter/sort controls, wishlist toggles, size and color selection, pincode checking states, media controls, and bag feedback.
-- No real authentication, payment, inventory, order, review, social, or external service integration.
-
-## Routes
-- `/` — campaign-led home and curated commerce.
-- `/shop` — category/product listing and filters.
-- `/product/$slug` — complete product detail experience.
-- `/watch` — immersive Watch & Shop experience.
+## Technical details
+- Reuse the current TanStack routes, semantic Tailwind tokens, local imagery, product data, and shared Button/ProductCard patterns.
+- Create route files for `/search`, `/wishlist`, `/bag`, and `/checkout`; each receives unique title, description, Open Graph metadata, and Twitter card metadata.
+- Extend local demo catalog data only where needed for size/colour/filter behavior; do not add Cloud, authentication, payments, inventory, or external integrations.
+- Use shared drawers/sheets and focused commerce components rather than duplicating screen-level controls.
+- Unknown product slugs render a branded unavailable-product state instead of silently showing another item.
 
 ## Validation
-- Verify core browse-to-product and Watch & Shop interactions on mobile and desktop.
-- Confirm each content route has unique page metadata and the layouts do not clip or overlap.
+- Exercise browse → product → select size/colour → add to bag → edit bag → guest checkout → confirmation on mobile and desktop.
+- Verify search results and no-results recovery, empty bag/wishlist, filter/sort sheets, Watch & Shop product preview, and Shop the Look multi-item selection.
+- Check all routes for clipping, overlap, usable touch targets, correct metadata, and browser errors at 390×844 and 1280×1800.
+
+## Boundaries
+This remains a design-reference prototype with local demo state. No production backend, login, payment processing, stock service, review submission, social metrics, or Instagram integration will be introduced.
