@@ -1,20 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Heart, Pause, Play, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Heart, Pause, Play, Share2, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Button, getProduct, useShop } from "@/components/ui";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { reelStories, type ReelStory } from "@/lib/reels";
 
 export const Route = createFileRoute("/watch")({
   validateSearch: (search: Record<string, unknown>) => ({ story: typeof search["story"] === "string" ? search["story"] : "city-colour" }),
-  head: () => ({ meta: [
-    { title: "Watch & Shop — AARO" },
-    { name: "description", content: "Discover AARO looks through immersive shoppable fashion stories." },
-    { property: "og:title", content: "Watch & Shop — AARO" },
-    { property: "og:description", content: "See the look in motion, then shop each piece." },
+  head: ({ match }) => { const story = reelStories.find(item => item.id === match.search.story); const title = story ? `${story.title} — Watch & Shop — AARO` : "Watch & Shop — AARO"; const description = story ? `${story.caption} Shop ${story.taggedProductSlugs.length} tagged pieces in this AARO story.` : "Discover AARO looks through shoppable fashion stories."; return { meta: [
+    { title },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
-  ]}),
+  ] }; },
   component: WatchPage,
 });
 
@@ -23,30 +23,59 @@ function WatchPage() {
   const initialIndex = Math.max(0, reelStories.findIndex((story) => story.id === requestedStory));
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [sheetStory, setSheetStory] = useState<ReelStory | null>(null);
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "manual">("idle");
+  const [shareStory, setShareStory] = useState<ReelStory | null>(null);
   const navigate = useNavigate({ from: "/watch" });
   const storyRefs = useRef<Array<HTMLElement | null>>([]);
   const firstStory = reelStories[0];
   if (!firstStory) return null;
   const activeStory = reelStories[activeIndex] ?? firstStory;
+  const shareUrl = (story: ReelStory) => { const url = new URL("/watch", window.location.origin); url.searchParams.set("story", story.id); return url.toString(); };
+  const share = async (story: ReelStory) => {
+    const url = shareUrl(story);
+    if (navigator.share) {
+      try { await navigator.share({ title: `${story.title} — AARO`, text: story.caption, url }); return; }
+      catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(url); setShareStatus("copied"); setShareStory(story); }
+    catch { setShareStatus("manual"); setShareStory(story); }
+  };
 
   useEffect(() => {
+    setActiveIndex(initialIndex);
     const node = storyRefs.current[initialIndex];
-    if (node && initialIndex > 0) node.scrollIntoView({ block: "start" });
+    if (node && window.matchMedia("(max-width: 767px)").matches) node.scrollIntoView({ block: "nearest", behavior: "instant" });
   }, [initialIndex]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setSheetStory(null); setShareStory(null); return; }
+      if (sheetStory || shareStory || event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLElement && event.target.closest("input, select, textarea, [contenteditable=true]")) return;
+      const direction = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 0;
+      if (!direction) return;
+      event.preventDefault();
+      const next = Math.max(0, Math.min(reelStories.length - 1, activeIndex + direction));
+      if (window.matchMedia("(max-width: 767px)").matches) storyRefs.current[next]?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      selectStory(next);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeIndex, sheetStory, shareStory]);
 
   const selectStory = (index: number) => {
     const bounded = Math.max(0, Math.min(reelStories.length - 1, index));
     const story = reelStories[bounded];
     if (!story) return;
     setActiveIndex(bounded);
-    navigate({ search: { story: story.id }, replace: true });
+    if (story.id !== requestedStory) navigate({ search: { story: story.id }, replace: true });
   };
 
   return <main className="bg-reel text-reel-foreground">
     <h1 className="sr-only">Watch & Shop fashion stories</h1>
+    <p className="sr-only" id="reel-keyboard-help">Use the arrow keys to move between stories. Press Escape to close products. Videos, when available, can be played with Space and muted with M.</p>
     <div className="md:hidden">
       <div className="h-[calc(100svh-6.5rem)] snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {reelStories.map((story, index) => <ReelFrame key={story.id} story={story} active={activeIndex === index} openProducts={() => setSheetStory(story)} storyIndex={index} storyCount={reelStories.length} frameRef={(node) => { storyRefs.current[index] = node; }} onVisible={() => selectStory(index)}/>)}
+        {reelStories.map((story, index) => <ReelFrame key={story.id} story={story} active={activeIndex === index} openProducts={() => setSheetStory(story)} onShare={() => void share(story)} storyIndex={index} storyCount={reelStories.length} frameRef={(node) => { storyRefs.current[index] = node; }} onVisible={() => selectStory(index)}/>)}
       </div>
     </div>
 
@@ -57,21 +86,27 @@ function WatchPage() {
           <p className="py-2 text-center text-[10px] font-semibold tracking-widest text-reel-foreground/55">{activeIndex + 1}/{reelStories.length}</p>
           <Button variant="light" size="icon" aria-label="Next story" disabled={activeIndex === reelStories.length - 1} onClick={() => selectStory(activeIndex + 1)}><ChevronRight size={20}/></Button>
         </div>
-        <ReelFrame story={activeStory} active openProducts={() => setSheetStory(activeStory)} storyIndex={activeIndex} storyCount={reelStories.length}/>
+        <ReelFrame key={activeStory.id} story={activeStory} active openProducts={() => setSheetStory(activeStory)} onShare={() => void share(activeStory)} storyIndex={activeIndex} storyCount={reelStories.length}/>
         <DesktopProducts story={activeStory}/>
       </div>
     </div>
     {sheetStory && <ProductSheet story={sheetStory} close={() => setSheetStory(null)}/>} 
+    {shareStory && <div className="fixed inset-x-4 bottom-5 z-[60] mx-auto flex max-w-md items-center gap-3 border border-border bg-background p-3 text-foreground shadow-sm" role="status"><div className="min-w-0 flex-1"><span className="text-sm">{shareStatus === "copied" ? "Story link copied" : "Copy this story link"}</span>{shareStatus === "manual" && <input aria-label="Story link" readOnly onFocus={event => event.currentTarget.select()} value={shareUrl(shareStory)} className="mt-1 w-full border-b border-border bg-transparent text-xs"/>}</div><Button variant="ghost" size="icon" aria-label="Dismiss share message" onClick={() => setShareStory(null)}><X size={17}/></Button></div>}
   </main>;
 }
 
-function ReelFrame({ story, active, openProducts, storyIndex, storyCount, frameRef, onVisible }: { story: ReelStory; active: boolean; openProducts: () => void; storyIndex: number; storyCount: number; frameRef?: (node: HTMLElement | null) => void; onVisible?: () => void }) {
-  const [playing, setPlaying] = useState(true);
+function ReelFrame({ story, active, openProducts, onShare, storyIndex, storyCount, frameRef, onVisible }: { story: ReelStory; active: boolean; openProducts: () => void; onShare: () => void; storyIndex: number; storyCount: number; frameRef?: (node: HTMLElement | null) => void; onVisible?: () => void }) {
+  const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
+  const [captions, setCaptions] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const { wishes, toggleWish } = useShop();
+  useEffect(() => { if (!story.videoUrl) return; const media = window.matchMedia("(prefers-reduced-motion: reduce)"); if (!media.matches) setPlaying(true); const change = () => { if (media.matches) setPlaying(false); }; media.addEventListener("change", change); return () => media.removeEventListener("change", change); }, [story.videoUrl]);
+  useEffect(() => { const video = videoRef.current; if (!video) return; if (playing && active) void video.play().catch(() => setPlaying(false)); else video.pause(); }, [playing, active]);
   useEffect(() => {
     if (!onVisible) return;
-    const node = document.querySelector(`[data-reel-id="${story.id}"]`);
+    const node = sectionRef.current;
     if (!node) return;
     const observer = new IntersectionObserver(([entry]) => { if (entry?.isIntersecting && entry.intersectionRatio > 0.7) onVisible(); }, { threshold: [0.7] });
     observer.observe(node);
@@ -79,19 +114,21 @@ function ReelFrame({ story, active, openProducts, storyIndex, storyCount, frameR
   }, [onVisible, story.id]);
 
   const firstSlug = story.taggedProductSlugs[0];
-  return <section ref={frameRef} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}`} className="relative mx-auto aspect-[9/16] h-auto max-h-[calc(100svh-6.5rem)] w-[min(100%,calc((100svh-6.5rem)*9/16))] snap-start overflow-hidden bg-foreground md:max-h-[76svh] md:w-auto md:max-w-[420px]">
-    {story.videoUrl ? <video src={story.videoUrl} poster={story.poster} muted={muted} autoPlay={playing && active} loop playsInline className="h-full w-full object-cover"/> : <img src={story.poster} alt={`${story.title} fashion story`} loading={storyIndex === 0 ? "eager" : "lazy"} width={768} height={1365} className="h-full w-full object-cover"/>}
+  return <section ref={node => { sectionRef.current = node; frameRef?.(node); }} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}. ${story.mediaDescription} ${story.caption}`} aria-describedby="reel-keyboard-help" tabIndex={0} onKeyDown={event => { if (!story.videoUrl || event.target !== event.currentTarget) return; if (event.key === " " || event.key.toLowerCase() === "k") { event.preventDefault(); setPlaying(value => !value); } else if (event.key.toLowerCase() === "m") { event.preventDefault(); setMuted(value => !value); } }} className="relative mx-auto aspect-[9/16] h-auto max-h-[calc(100svh-6.5rem)] w-[min(100%,calc((100svh-6.5rem)*9/16))] snap-start overflow-hidden bg-foreground md:max-h-[76svh] md:w-auto md:max-w-[420px]">
+    {story.videoUrl ? <video ref={videoRef} src={story.videoUrl} poster={story.poster} muted={muted} loop playsInline aria-label={story.mediaDescription} className="h-full w-full object-cover">{story.captionsUrl && <track kind="captions" src={story.captionsUrl} srcLang="en" label="English" default/>}</video> : <img src={story.poster} alt={story.mediaDescription} loading={storyIndex === 0 ? "eager" : "lazy"} width={768} height={1365} className="h-full w-full object-cover"/>}
     <div className="absolute inset-0 bg-reel-overlay"/>
     <div className="absolute left-3 top-3 flex gap-2">
       <span className="bg-reel/65 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-widest backdrop-blur-sm">Story {storyIndex + 1}/{storyCount}</span>
     </div>
     <div className="absolute right-3 top-3 flex gap-2">
-      <Button variant="light" size="icon" className="h-10 w-10 bg-background/90" aria-label={playing ? "Pause story" : "Play story"} aria-pressed={!playing} onClick={() => setPlaying(!playing)}>{playing ? <Pause size={17}/> : <Play size={17}/>}</Button>
-      <Button variant="light" size="icon" className="h-10 w-10 bg-background/90" aria-label={muted ? "Unmute story" : "Mute story"} aria-pressed={muted} onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={17}/> : <Volume2 size={17}/>}</Button>
+      {story.videoUrl && <><Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={playing ? `Pause ${story.title} video` : `Play ${story.title} video`} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? <Pause size={17}/> : <Play size={17}/>}</Button>
+      <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={muted ? `Unmute ${story.title} video` : `Mute ${story.title} video`} aria-pressed={!muted} onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={17}/> : <Volume2 size={17}/>}</Button></>}
+      {story.videoUrl && story.captionsUrl && <Button variant="light" size="icon" className="h-11 w-11 bg-background/90 text-xs font-bold" aria-label={`${captions ? "Hide" : "Show"} captions for ${story.title}`} aria-pressed={captions} onClick={() => { const track = videoRef.current?.textTracks[0]; if (track) track.mode = captions ? "disabled" : "showing"; setCaptions(!captions); }}>CC</Button>}
     </div>
     <div className="absolute bottom-5 right-3 flex flex-col gap-2">
-      {firstSlug && <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={`${wishes.has(firstSlug) ? "Remove first product from" : "Add first product to"} wishlist`} aria-pressed={wishes.has(firstSlug)} onClick={() => toggleWish(firstSlug)}><Heart size={18} fill={wishes.has(firstSlug) ? "currentColor" : "none"}/></Button>}
-      <Button variant="light" size="icon" className="relative h-11 w-11 bg-background/90" aria-label={`Shop ${story.taggedProductSlugs.length} tagged products`} onClick={openProducts}><ShoppingBag size={18}/><span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center bg-accent px-1 text-[9px] text-accent-foreground">{story.taggedProductSlugs.length}</span></Button>
+      <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={`Share ${story.title} story`} onClick={onShare}><Share2 size={18}/></Button>
+      {firstSlug && <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={`${wishes.has(firstSlug) ? "Remove" : "Add"} ${getProduct(firstSlug)?.name ?? "first tagged product"} ${wishes.has(firstSlug) ? "from" : "to"} wishlist`} aria-pressed={wishes.has(firstSlug)} onClick={() => toggleWish(firstSlug)}><Heart size={18} fill={wishes.has(firstSlug) ? "currentColor" : "none"}/></Button>}
+      <Button variant="light" size="icon" className="relative h-11 w-11 bg-background/90" aria-label={`Shop ${story.taggedProductSlugs.length} products tagged in ${story.title}`} onClick={openProducts}><ShoppingBag size={18}/><span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center bg-accent px-1 text-[9px] text-accent-foreground">{story.taggedProductSlugs.length}</span></Button>
     </div>
     <div className="absolute bottom-0 left-0 max-w-[calc(100%-4.5rem)] p-5 md:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-reel-foreground/75">{story.creator}</p>
@@ -112,7 +149,17 @@ function DesktopProducts({ story }: { story: ReelStory }) {
 }
 
 function ProductSheet({ story, close }: { story: ReelStory; close: () => void }) {
-  return <div className="fixed inset-0 z-50 flex items-end bg-overlay md:items-center md:justify-center" role="dialog" aria-modal="true" aria-labelledby="reel-sheet-title" onClick={close}>
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null; dialogRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Close products"]')?.focus(); return () => previous?.focus(); }, []);
+  const trapFocus = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") return;
+    const items = dialogRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled])');
+    if (!items?.length) return;
+    const first = items[0]; const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  };
+  return <div ref={dialogRef} className="fixed inset-0 z-50 flex items-end bg-overlay md:items-center md:justify-center" role="dialog" aria-modal="true" aria-labelledby="reel-sheet-title" onKeyDown={trapFocus} onClick={close}>
     <div className="max-h-[82svh] w-full overflow-y-auto bg-background p-5 text-foreground md:max-w-xl md:p-7" onClick={(event) => event.stopPropagation()}>
       <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 bg-background pb-4">
         <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-widest text-accent">Tagged products</p><h2 id="reel-sheet-title" className="mt-1 truncate font-display text-3xl">{story.title}</h2></div>

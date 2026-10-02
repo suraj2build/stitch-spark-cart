@@ -18,3 +18,8 @@
 - [x] Rebuild /watch as a mobile snap feed and restrained desktop viewer
 - [x] Add tagged-product bottom sheet and preserve bag/wishlist/PDP flows
 - [x] Verify Home and /watch at 360, 390, tablet, 1366, and 1440 widths
+
+## Reel accessibility and sharing
+- [x] Add descriptive media labels, caption support, keyboard navigation, and reduced-motion handling
+- [x] Add per-story share links, native share with fallback, and story-specific preview metadata
+- [x] Verify deep links, sharing, controls, tagged products, and responsive views
