@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Heart, Pause, Play, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Heart, Link2, Pause, Play, Share2, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button, getProduct, useShop } from "@/components/ui";
 import { formatPrice, type Product } from "@/lib/catalog";
@@ -7,14 +7,14 @@ import { reelStories, type ReelStory } from "@/lib/reels";
 
 export const Route = createFileRoute("/watch")({
   validateSearch: (search: Record<string, unknown>) => ({ story: typeof search["story"] === "string" ? search["story"] : "city-colour" }),
-  head: () => ({ meta: [
-    { title: "Watch & Shop — AARO" },
-    { name: "description", content: "Discover AARO looks through immersive shoppable fashion stories." },
-    { property: "og:title", content: "Watch & Shop — AARO" },
-    { property: "og:description", content: "See the look in motion, then shop each piece." },
+  head: ({ location }) => { const story = reelStories.find(item => item.id === new URLSearchParams(location.searchStr).get("story")); const title = story ? `${story.title} — Watch & Shop — AARO` : "Watch & Shop — AARO"; const description = story ? `${story.caption} Shop ${story.taggedProductSlugs.length} tagged pieces in this AARO story.` : "Discover AARO looks through shoppable fashion stories."; return { meta: [
+    { title },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
-  ]}),
+  ] }; },
   component: WatchPage,
 });
 
@@ -23,30 +23,58 @@ function WatchPage() {
   const initialIndex = Math.max(0, reelStories.findIndex((story) => story.id === requestedStory));
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [sheetStory, setSheetStory] = useState<ReelStory | null>(null);
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "manual">("idle");
+  const [shareStory, setShareStory] = useState<ReelStory | null>(null);
   const navigate = useNavigate({ from: "/watch" });
   const storyRefs = useRef<Array<HTMLElement | null>>([]);
   const firstStory = reelStories[0];
   if (!firstStory) return null;
   const activeStory = reelStories[activeIndex] ?? firstStory;
+  const shareUrl = (story: ReelStory) => { const url = new URL("/watch", window.location.origin); url.searchParams.set("story", story.id); return url.toString(); };
+  const share = async (story: ReelStory) => {
+    const url = shareUrl(story);
+    if (navigator.share) {
+      try { await navigator.share({ title: `${story.title} — AARO`, text: story.caption, url }); return; }
+      catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(url); setShareStatus("copied"); setShareStory(story); }
+    catch { setShareStatus("manual"); setShareStory(story); }
+  };
 
   useEffect(() => {
+    setActiveIndex(initialIndex);
     const node = storyRefs.current[initialIndex];
-    if (node && initialIndex > 0) node.scrollIntoView({ block: "start" });
+    if (node && window.matchMedia("(max-width: 767px)").matches) node.scrollIntoView({ block: "nearest", behavior: "instant" });
   }, [initialIndex]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setSheetStory(null); setShareStory(null); return; }
+      if (sheetStory || shareStory || event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) return;
+      const direction = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 0;
+      if (!direction) return;
+      event.preventDefault();
+      const next = Math.max(0, Math.min(reelStories.length - 1, activeIndex + direction));
+      if (window.matchMedia("(max-width: 767px)").matches) storyRefs.current[next]?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      selectStory(next);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeIndex, sheetStory, shareStory]);
 
   const selectStory = (index: number) => {
     const bounded = Math.max(0, Math.min(reelStories.length - 1, index));
     const story = reelStories[bounded];
     if (!story) return;
     setActiveIndex(bounded);
-    navigate({ search: { story: story.id }, replace: true });
+    if (story.id !== requestedStory) navigate({ search: { story: story.id }, replace: true });
   };
 
   return <main className="bg-reel text-reel-foreground">
     <h1 className="sr-only">Watch & Shop fashion stories</h1>
     <div className="md:hidden">
       <div className="h-[calc(100svh-6.5rem)] snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {reelStories.map((story, index) => <ReelFrame key={story.id} story={story} active={activeIndex === index} openProducts={() => setSheetStory(story)} storyIndex={index} storyCount={reelStories.length} frameRef={(node) => { storyRefs.current[index] = node; }} onVisible={() => selectStory(index)}/>)}
+        {reelStories.map((story, index) => <ReelFrame key={story.id} story={story} active={activeIndex === index} openProducts={() => setSheetStory(story)} onShare={() => void share(story)} storyIndex={index} storyCount={reelStories.length} frameRef={(node) => { storyRefs.current[index] = node; }} onVisible={() => selectStory(index)}/>)}
       </div>
     </div>
 
@@ -57,21 +85,25 @@ function WatchPage() {
           <p className="py-2 text-center text-[10px] font-semibold tracking-widest text-reel-foreground/55">{activeIndex + 1}/{reelStories.length}</p>
           <Button variant="light" size="icon" aria-label="Next story" disabled={activeIndex === reelStories.length - 1} onClick={() => selectStory(activeIndex + 1)}><ChevronRight size={20}/></Button>
         </div>
-        <ReelFrame story={activeStory} active openProducts={() => setSheetStory(activeStory)} storyIndex={activeIndex} storyCount={reelStories.length}/>
+        <ReelFrame key={activeStory.id} story={activeStory} active openProducts={() => setSheetStory(activeStory)} onShare={() => void share(activeStory)} storyIndex={activeIndex} storyCount={reelStories.length}/>
         <DesktopProducts story={activeStory}/>
       </div>
     </div>
     {sheetStory && <ProductSheet story={sheetStory} close={() => setSheetStory(null)}/>} 
+    {shareStory && <div className="fixed inset-x-4 bottom-5 z-[60] mx-auto flex max-w-md items-center gap-3 border border-border bg-background p-3 text-foreground shadow-sm" role="status"><span className="flex-1 text-sm">{shareStatus === "copied" ? "Story link copied" : "Copy this story link"}</span>{shareStatus === "manual" && <input aria-label="Story link" readOnly onFocus={event => event.currentTarget.select()} value={shareUrl(shareStory)} className="min-w-0 flex-1 border-b border-border bg-transparent text-xs"/>}<Button variant="ghost" size="icon" aria-label="Dismiss share message" onClick={() => setShareStory(null)}><X size={17}/></Button></div>}
   </main>;
 }
 
-function ReelFrame({ story, active, openProducts, storyIndex, storyCount, frameRef, onVisible }: { story: ReelStory; active: boolean; openProducts: () => void; storyIndex: number; storyCount: number; frameRef?: (node: HTMLElement | null) => void; onVisible?: () => void }) {
-  const [playing, setPlaying] = useState(true);
+function ReelFrame({ story, active, openProducts, onShare, storyIndex, storyCount, frameRef, onVisible }: { story: ReelStory; active: boolean; openProducts: () => void; onShare: () => void; storyIndex: number; storyCount: number; frameRef?: (node: HTMLElement | null) => void; onVisible?: () => void }) {
+  const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { wishes, toggleWish } = useShop();
+  useEffect(() => { if (!story.videoUrl) return; const media = window.matchMedia("(prefers-reduced-motion: reduce)"); if (!media.matches) setPlaying(true); const change = () => { if (media.matches) setPlaying(false); }; media.addEventListener("change", change); return () => media.removeEventListener("change", change); }, [story.videoUrl]);
+  useEffect(() => { const video = videoRef.current; if (!video) return; if (playing && active) void video.play().catch(() => setPlaying(false)); else video.pause(); }, [playing, active]);
   useEffect(() => {
     if (!onVisible) return;
-    const node = document.querySelector(`[data-reel-id="${story.id}"]`);
+    const node = storyRefsForObserver.current;
     if (!node) return;
     const observer = new IntersectionObserver(([entry]) => { if (entry?.isIntersecting && entry.intersectionRatio > 0.7) onVisible(); }, { threshold: [0.7] });
     observer.observe(node);
