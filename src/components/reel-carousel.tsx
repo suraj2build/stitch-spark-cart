@@ -9,7 +9,7 @@ export function ReelCarousel() {
   const move = (direction: -1 | 1) => {
     const track = trackRef.current;
     if (!track) return;
-    track.scrollBy({ left: direction * track.clientWidth * 0.78, behavior: "smooth" });
+    track.scrollBy({ left: direction * track.clientWidth * 0.78, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   };
 
   return <section className="overflow-hidden py-16 md:py-24">
@@ -22,13 +22,13 @@ export function ReelCarousel() {
           <Link to="/watch" search={{ story: reelStories[0]?.id ?? "city-colour" }} className="ml-2 shrink-0 border-b border-foreground pb-1 text-[10px] font-semibold uppercase tracking-widest">Watch all</Link>
         </div>
       </div>
-      <p className="-mt-3 mb-7 max-w-md text-sm text-muted-foreground md:-mt-5">Four new looks, styled in motion and ready to shop.</p>
+      <p className="-mt-3 mb-7 max-w-md text-sm text-muted-foreground md:-mt-5">Four looks to explore and shop.</p>
     </div>
-    <div ref={trackRef} aria-label="Shoppable fashion stories" className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:gap-5 md:px-[max(2rem,calc((100vw-1440px)/2+2rem))]">
-      {reelStories.map((story) => <Link key={story.id} to="/watch" search={{ story: story.id }} className="group relative aspect-[9/16] w-[78%] shrink-0 snap-start overflow-hidden bg-muted sm:w-[44%] lg:w-[23%]" aria-label={`Watch ${story.title}, ${story.taggedProductSlugs.length} products`}>
-        <img src={story.poster} alt={`${story.title} fashion story`} loading="lazy" width={768} height={1365} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"/>
+    <div ref={trackRef} role="region" aria-label="Shoppable fashion stories" tabIndex={0} className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:gap-5 md:px-[max(2rem,calc((100vw-1440px)/2+2rem))]">
+      {reelStories.map((story) => <Link key={story.id} to="/watch" search={{ story: story.id }} className="group relative aspect-[9/16] w-[78%] shrink-0 snap-start overflow-hidden bg-muted sm:w-[44%] lg:w-[23%]" aria-label={`Open ${story.title}: ${story.caption} ${story.taggedProductSlugs.length} tagged products`}>
+        <img src={story.poster} alt={story.mediaDescription} loading="lazy" width={768} height={1365} className="h-full w-full object-cover transition duration-500 motion-reduce:transition-none group-hover:scale-[1.02] motion-reduce:group-hover:scale-100"/>
         <div className="absolute inset-0 bg-reel-overlay"/>
-        <span className="absolute left-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-background/90 text-foreground"><Play size={16} fill="currentColor"/></span>
+        {story.videoUrl && <span className="absolute left-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-background/90 text-foreground"><Play size={16} fill="currentColor"/></span>}
         <div className="absolute inset-x-0 bottom-0 p-4 text-reel-foreground md:p-5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-reel-foreground/75">{story.creator}</p>
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
