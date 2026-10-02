@@ -25,6 +25,6 @@
 - [x] Verify deep links, sharing, controls, tagged products, and responsive views
 
 ## Editorial motion
-- [ ] Add subtle reduced-motion-aware parallax to Home campaign imagery
-- [ ] Add Framer Motion entrance/exit transitions to Home, PLP, PDP and their shopping dialogs
-- [ ] Check route navigation, dialogs, and mobile/desktop layouts
+- [x] Add subtle reduced-motion-aware parallax to Home campaign imagery
+- [x] Add Framer Motion entrance/exit transitions to Home, PLP, PDP and their shopping dialogs
+- [x] Check route navigation, dialogs, and mobile/desktop layouts
