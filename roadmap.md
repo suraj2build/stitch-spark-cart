@@ -23,3 +23,8 @@
 - [x] Add descriptive media labels, caption support, keyboard navigation, and reduced-motion handling
 - [x] Add per-story share links, native share with fallback, and story-specific preview metadata
 - [x] Verify deep links, sharing, controls, tagged products, and responsive views
+
+## Editorial motion
+- [ ] Add subtle reduced-motion-aware parallax to Home campaign imagery
+- [ ] Add Framer Motion entrance/exit transitions to Home, PLP, PDP and their shopping dialogs
+- [ ] Check route navigation, dialogs, and mobile/desktop layouts
