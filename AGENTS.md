@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep shoppable reel metadata and optional caption tracks in the shared story data, and share `/watch?story=<id>` links; this preserves each story's tagged products across navigation and direct visits.

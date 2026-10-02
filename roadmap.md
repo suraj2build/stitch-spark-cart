@@ -20,6 +20,6 @@
 - [x] Verify Home and /watch at 360, 390, tablet, 1366, and 1440 widths
 
 ## Reel accessibility and sharing
-- [ ] Add descriptive media labels, caption support, keyboard navigation, and reduced-motion handling
-- [ ] Add per-story share links, native share with fallback, and story-specific preview metadata
-- [ ] Verify deep links, sharing, controls, tagged products, and responsive views
+- [x] Add descriptive media labels, caption support, keyboard navigation, and reduced-motion handling
+- [x] Add per-story share links, native share with fallback, and story-specific preview metadata
+- [x] Verify deep links, sharing, controls, tagged products, and responsive views
