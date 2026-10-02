@@ -146,7 +146,17 @@ function DesktopProducts({ story }: { story: ReelStory }) {
 }
 
 function ProductSheet({ story, close }: { story: ReelStory; close: () => void }) {
-  return <div className="fixed inset-0 z-50 flex items-end bg-overlay md:items-center md:justify-center" role="dialog" aria-modal="true" aria-labelledby="reel-sheet-title" onClick={close}>
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null; dialogRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Close products"]')?.focus(); return () => previous?.focus(); }, []);
+  const trapFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") return;
+    const items = dialogRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled])');
+    if (!items?.length) return;
+    const first = items[0]; const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  };
+  return <div ref={dialogRef} className="fixed inset-0 z-50 flex items-end bg-overlay md:items-center md:justify-center" role="dialog" aria-modal="true" aria-labelledby="reel-sheet-title" onKeyDown={trapFocus} onClick={close}>
     <div className="max-h-[82svh] w-full overflow-y-auto bg-background p-5 text-foreground md:max-w-xl md:p-7" onClick={(event) => event.stopPropagation()}>
       <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 bg-background pb-4">
         <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-widest text-accent">Tagged products</p><h2 id="reel-sheet-title" className="mt-1 truncate font-display text-3xl">{story.title}</h2></div>
