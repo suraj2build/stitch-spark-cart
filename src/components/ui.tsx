@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, Menu, Search, ShoppingBag, UserRound, X } from "lucide-react";
 import { createContext, useContext, useMemo, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { AnimatedSheet } from "@/components/editorial-motion";
 import { formatPrice, products, type Product } from "@/lib/catalog";
 
 export type BagLine = { id: string; slug: string; size: string; colour: string; quantity: number };
@@ -82,13 +83,13 @@ export function ProductCard({ product }: { product: Product }) {
       <Button variant="light" size="sm" className="absolute bottom-2 left-2 right-2 hidden w-[calc(100%-1rem)] group-hover:inline-flex" onClick={() => setQuick(true)}>Quick add</Button>
     </div>
     <div className="pt-3"><Link to="/product/$slug" params={{ slug: product.slug }} className="block truncate text-sm font-medium">{product.name}</Link><p className="mt-1 text-xs text-muted-foreground">{product.category} · {product.colors.length} colours</p><div className="mt-2 flex gap-1.5" aria-label={`${product.colors.length} available colours`}>{product.colors.map((colour,index)=><span key={colour} title={colour} className={`h-3 w-3 rounded-full border border-border swatch-${index%5}`}/>)}</div><p className="mt-2 text-sm font-semibold">{formatPrice(product.price)} {product.mrp && <><span className="ml-1 font-normal text-muted-foreground line-through">{formatPrice(product.mrp)}</span><span className="ml-1 text-offer">{Math.round((1-product.price/product.mrp)*100)}% off</span></>}</p><Button variant="outline" size="sm" className="mt-3 w-full md:hidden" onClick={() => setQuick(true)}>Quick add</Button></div>
-    {quick && <QuickAdd product={product} close={() => setQuick(false)} addToBag={addToBag}/>} 
+    <QuickAdd open={quick} product={product} close={() => setQuick(false)} addToBag={addToBag}/>
   </article>;
 }
 
-function QuickAdd({ product, close, addToBag }: { product: Product; close: () => void; addToBag: ShopContextValue["addToBag"] }) {
+function QuickAdd({ open, product, close, addToBag }: { open: boolean; product: Product; close: () => void; addToBag: ShopContextValue["addToBag"] }) {
   const [colour, setColour] = useState(product.colors[0] ?? "default");
-  return <div className="fixed inset-0 z-50 flex items-end bg-overlay md:items-center md:justify-center" onClick={close}><div className="w-full bg-background p-5 md:max-w-md" onClick={(event) => event.stopPropagation()}><div className="flex justify-between"><div><p className="font-medium">Choose your size</p><p className="mt-1 text-xs text-muted-foreground">{product.name} · <span className="capitalize">{colour}</span></p></div><Button variant="ghost" size="icon" aria-label="Close size selector" onClick={close}><X size={18}/></Button></div><div className="mt-5 flex gap-2">{product.colors.map((item,index)=><Button key={item} variant={colour===item?"primary":"outline"} size="sm" onClick={()=>setColour(item)}>{item}</Button>)}</div><div className="my-6 grid grid-cols-5 gap-2">{product.sizes.map(({label,available}) => <Button key={label} disabled={!available} variant="outline" size="sm" onClick={() => { addToBag(product.slug,label,colour); close(); }}>{label}</Button>)}</div><p className="text-xs text-muted-foreground">Unavailable sizes are disabled. Selecting an available size adds one item.</p></div></div>;
+  return <AnimatedSheet open={open} close={close} label={`Choose a size for ${product.name}`} panelClassName="p-5 md:max-w-md"><div className="flex justify-between"><div><p className="font-medium">Choose your size</p><p className="mt-1 text-xs text-muted-foreground">{product.name} · <span className="capitalize">{colour}</span></p></div><Button variant="ghost" size="icon" aria-label="Close size selector" onClick={close}><X size={18}/></Button></div><div className="mt-5 flex gap-2">{product.colors.map((item)=> <Button key={item} variant={colour===item?"primary":"outline"} size="sm" onClick={()=>setColour(item)}>{item}</Button>)}</div><div className="my-6 grid grid-cols-5 gap-2">{product.sizes.map(({label,available}) => <Button key={label} disabled={!available} variant="outline" size="sm" onClick={() => { addToBag(product.slug,label,colour); close(); }}>{label}</Button>)}</div><p className="text-xs text-muted-foreground">Unavailable sizes are disabled. Selecting an available size adds one item.</p></AnimatedSheet>;
 }
 
 export function SectionTitle({ eyebrow, title, link }: { eyebrow?: string; title: string; link?: boolean }) {
