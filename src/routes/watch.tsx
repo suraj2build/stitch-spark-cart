@@ -7,7 +7,7 @@ import { reelStories, type ReelStory } from "@/lib/reels";
 
 export const Route = createFileRoute("/watch")({
   validateSearch: (search: Record<string, unknown>) => ({ story: typeof search["story"] === "string" ? search["story"] : "city-colour" }),
-  head: ({ location }) => { const story = reelStories.find(item => item.id === new URLSearchParams(location.searchStr).get("story")); const title = story ? `${story.title} — Watch & Shop — AARO` : "Watch & Shop — AARO"; const description = story ? `${story.caption} Shop ${story.taggedProductSlugs.length} tagged pieces in this AARO story.` : "Discover AARO looks through shoppable fashion stories."; return { meta: [
+  head: ({ match }) => { const story = reelStories.find(item => item.id === match.search.story); const title = story ? `${story.title} — Watch & Shop — AARO` : "Watch & Shop — AARO"; const description = story ? `${story.caption} Shop ${story.taggedProductSlugs.length} tagged pieces in this AARO story.` : "Discover AARO looks through shoppable fashion stories."; return { meta: [
     { title },
     { name: "description", content: description },
     { property: "og:title", content: title },
