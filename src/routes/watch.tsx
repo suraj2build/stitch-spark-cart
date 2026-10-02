@@ -50,7 +50,7 @@ function WatchPage() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") { setSheetStory(null); setShareStory(null); return; }
-      if (sheetStory || shareStory || event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) return;
+      if (sheetStory || shareStory || event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLElement && event.target.closest("input, select, textarea, [contenteditable=true]")) return;
       const direction = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 0;
       if (!direction) return;
       event.preventDefault();
