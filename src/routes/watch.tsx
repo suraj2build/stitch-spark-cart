@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Check, ChevronLeft, ChevronRight, Heart, Link2, Pause, Play, Share2, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Pause, Play, Share2, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button, getProduct, useShop } from "@/components/ui";
 import { formatPrice, type Product } from "@/lib/catalog";
@@ -98,12 +98,13 @@ function ReelFrame({ story, active, openProducts, onShare, storyIndex, storyCoun
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const { wishes, toggleWish } = useShop();
   useEffect(() => { if (!story.videoUrl) return; const media = window.matchMedia("(prefers-reduced-motion: reduce)"); if (!media.matches) setPlaying(true); const change = () => { if (media.matches) setPlaying(false); }; media.addEventListener("change", change); return () => media.removeEventListener("change", change); }, [story.videoUrl]);
   useEffect(() => { const video = videoRef.current; if (!video) return; if (playing && active) void video.play().catch(() => setPlaying(false)); else video.pause(); }, [playing, active]);
   useEffect(() => {
     if (!onVisible) return;
-    const node = storyRefsForObserver.current;
+    const node = sectionRef.current;
     if (!node) return;
     const observer = new IntersectionObserver(([entry]) => { if (entry?.isIntersecting && entry.intersectionRatio > 0.7) onVisible(); }, { threshold: [0.7] });
     observer.observe(node);
@@ -111,19 +112,20 @@ function ReelFrame({ story, active, openProducts, onShare, storyIndex, storyCoun
   }, [onVisible, story.id]);
 
   const firstSlug = story.taggedProductSlugs[0];
-  return <section ref={frameRef} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}`} className="relative mx-auto aspect-[9/16] h-auto max-h-[calc(100svh-6.5rem)] w-[min(100%,calc((100svh-6.5rem)*9/16))] snap-start overflow-hidden bg-foreground md:max-h-[76svh] md:w-auto md:max-w-[420px]">
-    {story.videoUrl ? <video src={story.videoUrl} poster={story.poster} muted={muted} autoPlay={playing && active} loop playsInline className="h-full w-full object-cover"/> : <img src={story.poster} alt={`${story.title} fashion story`} loading={storyIndex === 0 ? "eager" : "lazy"} width={768} height={1365} className="h-full w-full object-cover"/>}
+  return <section ref={node => { sectionRef.current = node; frameRef?.(node); }} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}. ${story.mediaDescription} ${story.caption}`} tabIndex={0} className="relative mx-auto aspect-[9/16] h-auto max-h-[calc(100svh-6.5rem)] w-[min(100%,calc((100svh-6.5rem)*9/16))] snap-start overflow-hidden bg-foreground md:max-h-[76svh] md:w-auto md:max-w-[420px]">
+    {story.videoUrl ? <video ref={videoRef} src={story.videoUrl} poster={story.poster} muted={muted} loop playsInline aria-label={story.mediaDescription} className="h-full w-full object-cover">{story.captionsUrl && <track kind="captions" src={story.captionsUrl} srcLang="en" label="English" default/>}</video> : <img src={story.poster} alt={story.mediaDescription} loading={storyIndex === 0 ? "eager" : "lazy"} width={768} height={1365} className="h-full w-full object-cover"/>}
     <div className="absolute inset-0 bg-reel-overlay"/>
     <div className="absolute left-3 top-3 flex gap-2">
       <span className="bg-reel/65 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-widest backdrop-blur-sm">Story {storyIndex + 1}/{storyCount}</span>
     </div>
     <div className="absolute right-3 top-3 flex gap-2">
-      <Button variant="light" size="icon" className="h-10 w-10 bg-background/90" aria-label={playing ? "Pause story" : "Play story"} aria-pressed={!playing} onClick={() => setPlaying(!playing)}>{playing ? <Pause size={17}/> : <Play size={17}/>}</Button>
-      <Button variant="light" size="icon" className="h-10 w-10 bg-background/90" aria-label={muted ? "Unmute story" : "Mute story"} aria-pressed={muted} onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={17}/> : <Volume2 size={17}/>}</Button>
+      {story.videoUrl && <><Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={playing ? `Pause ${story.title} video` : `Play ${story.title} video`} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? <Pause size={17}/> : <Play size={17}/>}</Button>
+      <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={muted ? `Unmute ${story.title} video` : `Mute ${story.title} video`} aria-pressed={!muted} onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={17}/> : <Volume2 size={17}/>}</Button></>}
     </div>
     <div className="absolute bottom-5 right-3 flex flex-col gap-2">
-      {firstSlug && <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={`${wishes.has(firstSlug) ? "Remove first product from" : "Add first product to"} wishlist`} aria-pressed={wishes.has(firstSlug)} onClick={() => toggleWish(firstSlug)}><Heart size={18} fill={wishes.has(firstSlug) ? "currentColor" : "none"}/></Button>}
-      <Button variant="light" size="icon" className="relative h-11 w-11 bg-background/90" aria-label={`Shop ${story.taggedProductSlugs.length} tagged products`} onClick={openProducts}><ShoppingBag size={18}/><span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center bg-accent px-1 text-[9px] text-accent-foreground">{story.taggedProductSlugs.length}</span></Button>
+      <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={`Share ${story.title} story`} onClick={onShare}><Share2 size={18}/></Button>
+      {firstSlug && <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={`${wishes.has(firstSlug) ? "Remove" : "Add"} ${getProduct(firstSlug)?.name ?? "first tagged product"} ${wishes.has(firstSlug) ? "from" : "to"} wishlist`} aria-pressed={wishes.has(firstSlug)} onClick={() => toggleWish(firstSlug)}><Heart size={18} fill={wishes.has(firstSlug) ? "currentColor" : "none"}/></Button>}
+      <Button variant="light" size="icon" className="relative h-11 w-11 bg-background/90" aria-label={`Shop ${story.taggedProductSlugs.length} products tagged in ${story.title}`} onClick={openProducts}><ShoppingBag size={18}/><span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center bg-accent px-1 text-[9px] text-accent-foreground">{story.taggedProductSlugs.length}</span></Button>
     </div>
     <div className="absolute bottom-0 left-0 max-w-[calc(100%-4.5rem)] p-5 md:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-reel-foreground/75">{story.creator}</p>
