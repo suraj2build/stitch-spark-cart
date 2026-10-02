@@ -98,6 +98,7 @@ function WatchPage() {
 function ReelFrame({ story, active, openProducts, onShare, storyIndex, storyCount, frameRef, onVisible }: { story: ReelStory; active: boolean; openProducts: () => void; onShare: () => void; storyIndex: number; storyCount: number; frameRef?: (node: HTMLElement | null) => void; onVisible?: () => void }) {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
+  const [captions, setCaptions] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const { wishes, toggleWish } = useShop();
@@ -122,6 +123,7 @@ function ReelFrame({ story, active, openProducts, onShare, storyIndex, storyCoun
     <div className="absolute right-3 top-3 flex gap-2">
       {story.videoUrl && <><Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={playing ? `Pause ${story.title} video` : `Play ${story.title} video`} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? <Pause size={17}/> : <Play size={17}/>}</Button>
       <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={muted ? `Unmute ${story.title} video` : `Mute ${story.title} video`} aria-pressed={!muted} onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={17}/> : <Volume2 size={17}/>}</Button></>}
+      {story.videoUrl && story.captionsUrl && <Button variant="light" size="icon" className="h-11 w-11 bg-background/90 text-xs font-bold" aria-label={`${captions ? "Hide" : "Show"} captions for ${story.title}`} aria-pressed={captions} onClick={() => { const track = videoRef.current?.textTracks[0]; if (track) track.mode = captions ? "disabled" : "showing"; setCaptions(!captions); }}>CC</Button>}
     </div>
     <div className="absolute bottom-5 right-3 flex flex-col gap-2">
       <Button variant="light" size="icon" className="h-11 w-11 bg-background/90" aria-label={`Share ${story.title} story`} onClick={onShare}><Share2 size={18}/></Button>
