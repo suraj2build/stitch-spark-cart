@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Keep shoppable reel metadata and optional caption tracks in the shared story data, and share `/watch?story=<id>` links; this preserves each story's tagged products across navigation and direct visits.
+- Use the shared Framer Motion sheet for shopping dialogs and route-level transitions for editorial pages; this keeps focus behavior and reduced-motion handling consistent.

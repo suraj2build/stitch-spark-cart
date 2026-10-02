@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Heart, Pause, Play, Share2, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, getProduct, useShop } from "@/components/ui";
+import { AnimatedSheet } from "@/components/editorial-motion";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { reelStories, type ReelStory } from "@/lib/reels";
 
@@ -90,7 +91,7 @@ function WatchPage() {
         <DesktopProducts story={activeStory}/>
       </div>
     </div>
-    {sheetStory && <ProductSheet story={sheetStory} close={() => setSheetStory(null)}/>} 
+    <ProductSheet story={sheetStory ?? activeStory} open={Boolean(sheetStory)} close={() => setSheetStory(null)}/>
     {shareStory && <div className="fixed inset-x-4 bottom-5 z-[60] mx-auto flex max-w-md items-center gap-3 border border-border bg-background p-3 text-foreground shadow-sm" role="status"><div className="min-w-0 flex-1"><span className="text-sm">{shareStatus === "copied" ? "Story link copied" : "Copy this story link"}</span>{shareStatus === "manual" && <input aria-label="Story link" readOnly onFocus={event => event.currentTarget.select()} value={shareUrl(shareStory)} className="mt-1 w-full border-b border-border bg-transparent text-xs"/>}</div><Button variant="ghost" size="icon" aria-label="Dismiss share message" onClick={() => setShareStory(null)}><X size={17}/></Button></div>}
   </main>;
 }
@@ -148,26 +149,14 @@ function DesktopProducts({ story }: { story: ReelStory }) {
   </aside>;
 }
 
-function ProductSheet({ story, close }: { story: ReelStory; close: () => void }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null; dialogRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Close products"]')?.focus(); return () => previous?.focus(); }, []);
-  const trapFocus = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Tab") return;
-    const items = dialogRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled])');
-    if (!items?.length) return;
-    const first = items[0]; const last = items[items.length - 1];
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
-  };
-  return <div ref={dialogRef} className="fixed inset-0 z-50 flex items-end bg-overlay md:items-center md:justify-center" role="dialog" aria-modal="true" aria-labelledby="reel-sheet-title" onKeyDown={trapFocus} onClick={close}>
-    <div className="max-h-[82svh] w-full overflow-y-auto bg-background p-5 text-foreground md:max-w-xl md:p-7" onClick={(event) => event.stopPropagation()}>
+function ProductSheet({ story, open, close }: { story: ReelStory; open: boolean; close: () => void }) {
+  return <AnimatedSheet open={open} close={close} label={`${story.title} tagged products`} panelClassName="p-5 text-foreground md:max-w-xl md:p-7">
       <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 bg-background pb-4">
         <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-widest text-accent">Tagged products</p><h2 id="reel-sheet-title" className="mt-1 truncate font-display text-3xl">{story.title}</h2></div>
         <Button variant="ghost" size="icon" aria-label="Close products" onClick={close}><X size={20}/></Button>
       </div>
       <div className="divide-y divide-border border-t border-border">{story.taggedProductSlugs.map((slug) => { const product = getProduct(slug); return product ? <TaggedProduct key={slug} product={product}/> : null; })}</div>
-    </div>
-  </div>;
+  </AnimatedSheet>;
 }
 
 function TaggedProduct({ product, compact = false }: { product: Product; compact?: boolean }) {

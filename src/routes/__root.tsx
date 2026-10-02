@@ -6,7 +6,10 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useLocation,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -35,7 +38,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -118,12 +121,19 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useLocation({ select: location => location.pathname });
+  const reduce = useReducedMotion();
+  const editorial = pathname === "/" || pathname === "/shop" || pathname.startsWith("/product/");
 
   return (
     <QueryClientProvider client={queryClient}>
       <ShopProvider>
         <Header />
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={pathname} initial={editorial && !reduce ? { opacity: 0, y: 10 } : false} animate={{ opacity: 1, y: 0 }} exit={editorial && !reduce ? { opacity: 0, y: -8 } : { opacity: 1 }} transition={{ duration: reduce ? 0 : 0.24, ease: "easeOut" }}>
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
         <Footer />
       </ShopProvider>
     </QueryClientProvider>
