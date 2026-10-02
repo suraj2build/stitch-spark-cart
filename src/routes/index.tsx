@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, ShieldCheck, Sparkles, Truck, Undo2 } from "lucide-react";
+import { useRef } from "react";
 import campaignHero from "@/assets/campaign-hero.jpg";
 import productGrid from "@/assets/products-grid.jpg";
 import reelsGrid from "@/assets/reels-grid.jpg";
@@ -25,9 +27,16 @@ const categories: Array<[string, string]> = [
 ];
 
 function HomePage() {
+  const heroRef = useRef<HTMLElement>(null);
+  const editorialRef = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const { scrollYProgress: editorialProgress } = useScroll({ target: editorialRef, offset: ["start end", "end start"] });
+  const heroShift = useTransform(heroProgress, [0, 1], [0, 52]);
+  const editorialShift = useTransform(editorialProgress, [0, 1], [-24, 24]);
   return <main>
-    <section className="relative h-[78svh] min-h-[570px] overflow-hidden md:h-[calc(100vh-7rem)] md:min-h-[680px]">
-      <img src={campaignHero} alt="AARO summer campaign with two models" width={1536} height={1024} className="h-full w-full object-cover object-[48%_center]" />
+    <section ref={heroRef} className="relative h-[78svh] min-h-[570px] overflow-hidden md:h-[calc(100vh-7rem)] md:min-h-[680px]">
+      <motion.img src={campaignHero} alt="AARO summer campaign with two models" width={1536} height={1024} style={reduce ? undefined : { y: heroShift }} className="absolute inset-0 h-[calc(100%+4rem)] w-full object-cover object-[48%_center]" />
       <div className="absolute inset-0 bg-hero-overlay" />
       <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-10 text-hero-foreground md:px-10 md:pb-16">
         <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em]">The September Edit · 2026</p>
@@ -41,7 +50,7 @@ function HomePage() {
 
     <section className="border-y border-border bg-muted py-16 md:py-24"><div className="mx-auto max-w-[1440px] px-4 md:px-8"><SectionTitle eyebrow="Find your thing" title="Shop by category"/><div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">{categories.map(([name,position])=><Link to="/shop" search={{ for: name.toLowerCase() }} key={name} className="group"><div className="aspect-[3/4] overflow-hidden bg-secondary"><img src={productGrid} alt={`${name} collection`} loading="lazy" width={1536} height={1024} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" style={{objectPosition:position}}/></div><p className="mt-3 font-display text-xl">{name}</p></Link>)}</div></div></section>
 
-    <section className="grid min-h-[80svh] md:grid-cols-2"><div className="min-h-[55svh] bg-cover bg-center" style={{backgroundImage:`url(${redDress})`}}/><div className="flex items-center bg-secondary px-6 py-14 md:px-16"><div className="max-w-md"><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">The occasion issue</p><h2 className="mt-4 font-display text-5xl leading-none md:text-7xl">After dark,<br/>in full colour.</h2><p className="mt-6 text-sm leading-6 text-muted-foreground">Statement shapes meet saturated colour in our edit for every RSVP on your calendar.</p><Link to="/shop" search={{ for: "occasion" }} className="mt-8 inline-flex items-center gap-2 border-b border-foreground pb-1 text-xs font-semibold uppercase tracking-widest">Explore the edit <ArrowRight size={14}/></Link></div></div></section>
+    <section ref={editorialRef} className="grid min-h-[80svh] md:grid-cols-2"><div className="relative min-h-[55svh] overflow-hidden"><motion.img src={redDress} alt="Statement red occasion look" loading="lazy" style={reduce ? undefined : { y: editorialShift }} className="absolute inset-0 h-[calc(100%+3rem)] w-full object-cover"/></div><div className="flex items-center bg-secondary px-6 py-14 md:px-16"><div className="max-w-md"><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">The occasion issue</p><h2 className="mt-4 font-display text-5xl leading-none md:text-7xl">After dark,<br/>in full colour.</h2><p className="mt-6 text-sm leading-6 text-muted-foreground">Statement shapes meet saturated colour in our edit for every RSVP on your calendar.</p><Link to="/shop" search={{ for: "occasion" }} className="mt-8 inline-flex items-center gap-2 border-b border-foreground pb-1 text-xs font-semibold uppercase tracking-widest">Explore the edit <ArrowRight size={14}/></Link></div></div></section>
 
     <section className="mx-auto max-w-[1440px] px-4 py-16 md:px-8 md:py-24"><SectionTitle eyebrow="Most wanted" title="Best sellers" link/><div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-5">{products.slice(2,6).map(product=><ProductCard product={product} key={product.slug}/>)}</div></section>
 
