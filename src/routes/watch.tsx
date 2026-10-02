@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Heart, Pause, Play, Share2, ShoppingBag, Volume2, VolumeX, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Button, getProduct, useShop } from "@/components/ui";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { reelStories, type ReelStory } from "@/lib/reels";
@@ -90,7 +90,7 @@ function WatchPage() {
       </div>
     </div>
     {sheetStory && <ProductSheet story={sheetStory} close={() => setSheetStory(null)}/>} 
-    {shareStory && <div className="fixed inset-x-4 bottom-5 z-[60] mx-auto flex max-w-md items-center gap-3 border border-border bg-background p-3 text-foreground shadow-sm" role="status"><span className="flex-1 text-sm">{shareStatus === "copied" ? "Story link copied" : "Copy this story link"}</span>{shareStatus === "manual" && <input aria-label="Story link" readOnly onFocus={event => event.currentTarget.select()} value={shareUrl(shareStory)} className="min-w-0 flex-1 border-b border-border bg-transparent text-xs"/>}<Button variant="ghost" size="icon" aria-label="Dismiss share message" onClick={() => setShareStory(null)}><X size={17}/></Button></div>}
+    {shareStory && <div className="fixed inset-x-4 bottom-5 z-[60] mx-auto flex max-w-md items-center gap-3 border border-border bg-background p-3 text-foreground shadow-sm" role="status"><div className="min-w-0 flex-1"><span className="text-sm">{shareStatus === "copied" ? "Story link copied" : "Copy this story link"}</span>{shareStatus === "manual" && <input aria-label="Story link" readOnly onFocus={event => event.currentTarget.select()} value={shareUrl(shareStory)} className="mt-1 w-full border-b border-border bg-transparent text-xs"/>}</div><Button variant="ghost" size="icon" aria-label="Dismiss share message" onClick={() => setShareStory(null)}><X size={17}/></Button></div>}
   </main>;
 }
 
@@ -148,7 +148,7 @@ function DesktopProducts({ story }: { story: ReelStory }) {
 function ProductSheet({ story, close }: { story: ReelStory; close: () => void }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => { const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null; dialogRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Close products"]')?.focus(); return () => previous?.focus(); }, []);
-  const trapFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const trapFocus = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Tab") return;
     const items = dialogRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled])');
     if (!items?.length) return;
