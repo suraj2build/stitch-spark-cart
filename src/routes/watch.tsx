@@ -72,6 +72,7 @@ function WatchPage() {
 
   return <main className="bg-reel text-reel-foreground">
     <h1 className="sr-only">Watch & Shop fashion stories</h1>
+    <p className="sr-only" id="reel-keyboard-help">Use the arrow keys to move between stories. Press Escape to close products. Videos, when available, can be played with Space and muted with M.</p>
     <div className="md:hidden">
       <div className="h-[calc(100svh-6.5rem)] snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {reelStories.map((story, index) => <ReelFrame key={story.id} story={story} active={activeIndex === index} openProducts={() => setSheetStory(story)} onShare={() => void share(story)} storyIndex={index} storyCount={reelStories.length} frameRef={(node) => { storyRefs.current[index] = node; }} onVisible={() => selectStory(index)}/>)}
@@ -112,7 +113,7 @@ function ReelFrame({ story, active, openProducts, onShare, storyIndex, storyCoun
   }, [onVisible, story.id]);
 
   const firstSlug = story.taggedProductSlugs[0];
-  return <section ref={node => { sectionRef.current = node; frameRef?.(node); }} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}. ${story.mediaDescription} ${story.caption}`} tabIndex={0} className="relative mx-auto aspect-[9/16] h-auto max-h-[calc(100svh-6.5rem)] w-[min(100%,calc((100svh-6.5rem)*9/16))] snap-start overflow-hidden bg-foreground md:max-h-[76svh] md:w-auto md:max-w-[420px]">
+  return <section ref={node => { sectionRef.current = node; frameRef?.(node); }} data-reel-id={story.id} aria-label={`${story.title}, story ${storyIndex + 1} of ${storyCount}. ${story.mediaDescription} ${story.caption}`} aria-describedby="reel-keyboard-help" tabIndex={0} onKeyDown={event => { if (!story.videoUrl || event.target !== event.currentTarget) return; if (event.key === " " || event.key.toLowerCase() === "k") { event.preventDefault(); setPlaying(value => !value); } else if (event.key.toLowerCase() === "m") { event.preventDefault(); setMuted(value => !value); } }} className="relative mx-auto aspect-[9/16] h-auto max-h-[calc(100svh-6.5rem)] w-[min(100%,calc((100svh-6.5rem)*9/16))] snap-start overflow-hidden bg-foreground md:max-h-[76svh] md:w-auto md:max-w-[420px]">
     {story.videoUrl ? <video ref={videoRef} src={story.videoUrl} poster={story.poster} muted={muted} loop playsInline aria-label={story.mediaDescription} className="h-full w-full object-cover">{story.captionsUrl && <track kind="captions" src={story.captionsUrl} srcLang="en" label="English" default/>}</video> : <img src={story.poster} alt={story.mediaDescription} loading={storyIndex === 0 ? "eager" : "lazy"} width={768} height={1365} className="h-full w-full object-cover"/>}
     <div className="absolute inset-0 bg-reel-overlay"/>
     <div className="absolute left-3 top-3 flex gap-2">
